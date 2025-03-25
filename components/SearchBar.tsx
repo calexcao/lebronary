@@ -1,3 +1,4 @@
+import { SearchIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
@@ -31,7 +32,9 @@ function SearchBar() {
           </SelectContent>
         </Select>
         <Input type="text" placeholder="Search..." name="search" />
-        <Button type="submit">Search</Button>
+        <Button type="submit">
+          <SearchIcon />
+        </Button>
       </div>
     </form>
   );
