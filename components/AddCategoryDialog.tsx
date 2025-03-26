@@ -6,14 +6,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { addCategory } from "@/actions/action";
+import { addCategory, editCategory } from "@/actions/action";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
+import { Category } from "@/app/(admin)/admin/categories/Columns";
+import { useEffect } from "react";
 
 type Props = {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  category?: string;
+  category?: Category;
 };
 
 const formSchema = z.object({
@@ -28,17 +30,33 @@ function AddCategoryDialog({ setOpen, open, category }: Props) {
     defaultValues: { name: "" },
   });
 
+  useEffect(() => {
+    if (category) {
+      form.setValue("id", category.id);
+      form.setValue("name", category.name);
+    }
+  }, [category, form]);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    await addCategory(values.name, path);
-    toast("Category Added");
-    form.reset();
+    try {
+      if (category) {
+        await editCategory(category.id, values.name, path);
+      } else {
+        await addCategory(values.name, path);
+      }
+      toast("Category Saved");
+      form.reset();
+    } catch (error) {
+      console.error(error);
+      toast("An error occurred");
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Category</DialogTitle>
+          <DialogTitle>Add / Edit Category</DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
         <Form {...form}>
