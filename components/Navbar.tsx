@@ -7,7 +7,6 @@ import {
   Lock,
   IdCard,
 } from "lucide-react";
-import { JSX } from "react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -16,20 +15,14 @@ import {
   NavigationMenuTrigger,
 } from "./ui/navigation-menu";
 
-interface NavItem {
-  href: string;
-  icon: JSX.Element;
-  text: string;
-}
-
 function Navbar() {
-  const navItems: NavItem[] = [
+  const navItems = [
     { href: "/", icon: <Library size={20} />, text: "Cataloge" },
     { href: "/", icon: <Map size={20} />, text: "Locations" },
     { href: "/", icon: <CalendarCheck size={20} />, text: "Activities" },
   ];
 
-  const moreItems: NavItem[] = [
+  const moreItems = [
     { href: "/", icon: <IdCard size={20} />, text: "Library Card" },
     { href: "/", icon: <Lock size={20} />, text: "Book Room" },
     { href: "/", icon: <Computer size={20} />, text: "Rent Equipment" },
@@ -37,12 +30,12 @@ function Navbar() {
 
   return (
     <nav className="container mx-auto flex justify-between items-center py-2">
-      <div className="flex items-center space-x-10">
-        {navItems.map((item, index) => (
+      <div className="flex items-center space-x-6">
+        {navItems.map((item) => (
           <Link
-            key={index}
+            key={item.text}
             href={item.href}
-            className="text-sm flex items-center space-x-2 text-muted-foreground hover:text-primary"
+            className="text-sm flex items-center space-x-2 text-muted-foreground hover:text-primary hover:bg-card rounded-full py-2 px-4"
           >
             {item.icon}
             <span>{item.text}</span>
@@ -56,9 +49,9 @@ function Navbar() {
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <div className="grid w-[180px]">
-                  {moreItems.map((item, index) => (
+                  {moreItems.map((item) => (
                     <Link
-                      key={index}
+                      key={item.text}
                       href={item.href}
                       className="text-sm flex items-center space-x-2 p-2 text-muted-foreground hover:text-primary"
                     >
