@@ -12,7 +12,7 @@ export async function addCategory(name: string, path: string) {
       });
 
       if (existingCategory) {
-        throw new Error("Category already exists");
+        return existingCategory;
       }
 
       return await prisma.categories.create({
@@ -54,6 +54,27 @@ export async function editCategory(id: number, name: string, path: string) {
     });
 
     revalidatePath(path);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getCategories(offset: number, limit: number) {
+  try {
+    let categories;
+    let total;
+
+    if (limit === -1) {
+      categories = await prisma.categories.findMany();
+      total = categories.length;
+    } else {
+      [categories, total] = await prisma.$transaction([
+        prisma.categories.findMany({ skip: offset, take: limit }),
+        prisma.categories.count(),
+      ]);
+    }
+
+    return { data: categories, total: total };
   } catch (error) {
     throw error;
   }

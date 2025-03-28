@@ -10,7 +10,7 @@ import {
 import Link from "next/link";
 
 const menuItems = [
-  { href: "/admin", icon: <Library />, text: "Library" },
+  { href: "/admin", icon: <Library />, text: "Catalog" },
   { href: "/admin/categories", icon: <MapIcon />, text: "Categories" },
   { href: "/admin/activities", icon: <CalendarCheck />, text: "Activities" },
   { href: "/admin/users", icon: <User />, text: "Users" },
