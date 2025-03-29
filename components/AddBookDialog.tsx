@@ -24,7 +24,7 @@ import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, Loader } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -33,8 +33,9 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { addBook, getCategories } from "@/actions/action";
+import { addBook, addPhoto, editBook, getCategories } from "@/actions/action";
 import { toast } from "sonner";
+import ImageDropzone from "./ImageDropzone";
 
 type props = {
   open: boolean;
@@ -87,6 +88,22 @@ function AddBookDialog({ open, setOpen, book }: props) {
     })();
   }, []);
 
+  useEffect(() => {
+    if (book) {
+      form.setValue("id", book.id);
+      form.setValue("name", book.name);
+      form.setValue("isbn", book.isbn);
+      form.setValue("copies", book.copies);
+      form.setValue("publish_year", book.publish_year);
+      form.setValue(
+        "category",
+        book.category_links?.map((c) => c.category_id) as number[]
+      );
+      form.setValue("photos", book.book_photos?.map((p) => p.url) || []);
+      form.setValue("author", book.author);
+    }
+  }, [book, form]);
+
   const handleItemSelect = (item: number) => {
     const newValue = form.getValues("category").slice();
     const itemIndex = newValue.indexOf(item);
@@ -99,9 +116,25 @@ function AddBookDialog({ open, setOpen, book }: props) {
   };
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    await addBook({ ...values, path });
+    if (book) {
+      await editBook({ ...values, path });
+      setOpen(false);
+    } else {
+      await addBook({ ...values, path });
+    }
     toast("Book Saved");
     form.reset();
+  };
+
+  const handleFileAdd = async (files: string[]) => {
+    const existingPhotos = form.getValues("photos");
+    form.setValue("photos", [...existingPhotos, ...files]);
+  };
+
+  const handleFileDelete = async (url: string) => {
+    const updatedPhotos =
+      form.getValues("photos").filter((p) => p !== url) ?? [];
+    form.setValue("photos", updatedPhotos);
   };
 
   return (
@@ -245,6 +278,17 @@ function AddBookDialog({ open, setOpen, book }: props) {
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="photos"
+                render={({ field }) => (
+                  <ImageDropzone
+                    photos={field.value}
+                    onFilesAdded={handleFileAdd}
+                    onFileDelete={handleFileDelete}
+                  />
                 )}
               />
               <div className="flex flex-col w-full">

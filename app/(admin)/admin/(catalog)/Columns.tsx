@@ -3,6 +3,7 @@ import { createRowActions } from "@/components/DataTableActions";
 import { formatISBN } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Check, CircleOff } from "lucide-react";
+import Image from "next/image";
 
 type Photo = {
   photo_id: number;
@@ -26,6 +27,18 @@ export const columns: ColumnDef<Book>[] = [
     accessorKey: "book_photos",
     enableSorting: false,
     header: ({ column }) => <ColumnHeader column={column} title="Image" />,
+    cell: ({ row }) => (
+      <Image
+        width={40}
+        height={0}
+        alt=""
+        src={
+          (row.getValue("book_photos") as unknown as Photo[])
+            .map((p) => p.url)
+            .pop()!
+        }
+      />
+    ),
   },
   {
     accessorKey: "name",

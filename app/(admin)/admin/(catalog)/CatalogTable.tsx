@@ -2,6 +2,12 @@
 
 import { DataTable } from "@/components/DataTable";
 import { Book, columns } from "./Columns";
+import { deleteBook } from "@/actions/action";
+import { usePathname } from "next/navigation";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import { useState } from "react";
+import { toast } from "sonner";
+import AddBookDialog from "@/components/AddBookDialog";
 
 type props = {
   data: Book[];
@@ -9,12 +15,27 @@ type props = {
 };
 
 function CatalogTable({ data }: { data: props }) {
+  const [openConfirmationDialog, setOpenConfirmationDialog] = useState(false);
+  const [itemToAction, setItemToAction] = useState<Book>();
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
   const handleRowDelete = (item: Book) => {
-    console.log(item);
+    setOpenConfirmationDialog(true);
+    setItemToAction(item);
   };
 
   const handleRowEdit = (item: Book) => {
-    console.log(item);
+    setItemToAction(item);
+    setOpen(true);
+  };
+
+  const handleConfirm = async () => {
+    setOpenConfirmationDialog(false);
+    if (itemToAction) {
+      await deleteBook(itemToAction.id, pathname);
+    }
+    toast("Book Deleted");
   };
 
   return (
@@ -26,6 +47,13 @@ function CatalogTable({ data }: { data: props }) {
         filterColumn="name"
         onRowDelete={handleRowDelete}
         onRowEdit={handleRowEdit}
+      />
+      <AddBookDialog open={open} setOpen={setOpen} book={itemToAction} />
+      <ConfirmationDialog
+        open={openConfirmationDialog}
+        onClose={() => setOpenConfirmationDialog(false)}
+        onConfirm={handleConfirm}
+        message="Are you sure you want to delete this book?"
       />
     </>
   );
