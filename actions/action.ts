@@ -79,3 +79,51 @@ export async function getCategories(offset: number, limit: number) {
     throw error;
   }
 }
+
+//Books
+export async function addBook({
+  name,
+  isbn,
+  copies,
+  category,
+  path,
+  photos,
+  publish_year,
+  author,
+}: {
+  name: string;
+  isbn: string;
+  copies: number;
+  category: number[];
+  path: string;
+  photos: string[];
+  publish_year: number;
+  author: string;
+}) {
+  try {
+    await prisma.$transaction(async (t) => {
+      const book = await t.books.create({
+        data: {
+          name: name,
+          isbn: isbn,
+          copies: copies,
+          publish_year: publish_year,
+          author: author,
+        },
+      });
+
+      if (category && category.length > 0) {
+        const data = category.map((cat) => ({
+          book_id: book.id,
+          category_id: cat,
+        }));
+
+        await t.category_links.createMany({ data });
+      }
+
+      revalidatePath(path);
+    });
+  } catch (error) {
+    throw error;
+  }
+}

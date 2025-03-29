@@ -24,7 +24,7 @@ import { Input } from "./ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader } from "lucide-react";
 import {
   Command,
   CommandEmpty,
@@ -33,7 +33,8 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { getCategories } from "@/actions/action";
+import { addBook, getCategories } from "@/actions/action";
+import { toast } from "sonner";
 
 type props = {
   open: boolean;
@@ -64,7 +65,6 @@ function AddBookDialog({ open, setOpen, book }: props) {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>(
     []
   );
-  const [processing, setProcessing] = useState(false);
   const path = usePathname();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -98,6 +98,12 @@ function AddBookDialog({ open, setOpen, book }: props) {
     form.setValue("category", newValue);
   };
 
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    await addBook({ ...values, path });
+    toast("Book Saved");
+    form.reset();
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
@@ -105,7 +111,10 @@ function AddBookDialog({ open, setOpen, book }: props) {
           <DialogTitle>Add / Edit Book</DialogTitle>
           <DialogDescription></DialogDescription>
           <Form {...form}>
-            <form className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -238,6 +247,9 @@ function AddBookDialog({ open, setOpen, book }: props) {
                   </FormItem>
                 )}
               />
+              <div className="flex flex-col w-full">
+                <Button type="submit">Save</Button>
+              </div>
             </form>
           </Form>
         </DialogHeader>

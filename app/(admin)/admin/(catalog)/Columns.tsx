@@ -18,7 +18,7 @@ export type Book = {
   is_active: boolean | number;
   publish_year: number;
   book_photos?: Photo[];
-  category_links?: { id: number }[];
+  category_links?: { category_id: number }[];
 };
 
 export const columns: ColumnDef<Book>[] = [

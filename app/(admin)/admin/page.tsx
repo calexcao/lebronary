@@ -42,7 +42,7 @@ async function AdminPage({
   return (
     <div>
       <AddBookButton />
-      <CatalogTable />
+      <CatalogTable data={{ data: books, total: total }} />
     </div>
   );
 }
