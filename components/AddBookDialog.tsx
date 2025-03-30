@@ -33,7 +33,13 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { addBook, addPhoto, editBook, getCategories } from "@/actions/action";
+import {
+  addBook,
+  addPhoto,
+  deletePhoto,
+  editBook,
+  getCategories,
+} from "@/actions/action";
 import { toast } from "sonner";
 import ImageDropzone from "./ImageDropzone";
 
@@ -127,14 +133,23 @@ function AddBookDialog({ open, setOpen, book }: props) {
   };
 
   const handleFileAdd = async (files: string[]) => {
+    if (book) {
+      const newPhoto = await addPhoto("book", book.id, files[0], path);
+      if (newPhoto) {
+        book.book_photos?.push(newPhoto);
+      }
+    }
     const existingPhotos = form.getValues("photos");
     form.setValue("photos", [...existingPhotos, ...files]);
   };
 
   const handleFileDelete = async (url: string) => {
-    const updatedPhotos =
-      form.getValues("photos").filter((p) => p !== url) ?? [];
-    form.setValue("photos", updatedPhotos);
+    if (book) {
+      const photoToDelete = book.book_photos?.filter((p) => p.url == url);
+      if (photoToDelete && photoToDelete.length > 0) {
+        await deletePhoto("book", photoToDelete[0].photo_id, path);
+      }
+    }
   };
 
   return (

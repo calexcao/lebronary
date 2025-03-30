@@ -24,72 +24,75 @@ function ImageDropzone({ onFilesAdded, onFileDelete, photos }: InputProps) {
   const [imageStates, setImageStates] = useState<UploadInterface[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    setUploading(true);
-    setError(null);
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      setUploading(true);
+      setError(null);
 
-    const promises: Promise<UploadInterface>[] = [];
-    try {
-      const newFiles = acceptedFiles.map<UploadInterface>((file) => ({
-        file,
-        downloadUrl: "",
-        fileName: `${Math.random()
-          .toString(36)
-          .slice(2, 10)}_${Date.now()}.${file.name.split(".").pop()}`,
-        state: "pending",
-      }));
+      const promises: Promise<UploadInterface>[] = [];
+      try {
+        const newFiles = acceptedFiles.map<UploadInterface>((file) => ({
+          file,
+          downloadUrl: "",
+          fileName: `${Math.random()
+            .toString(36)
+            .slice(2, 10)}_${Date.now()}.${file.name.split(".").pop()}`,
+          state: "pending",
+        }));
 
-      setImageStates((prevStates) => [...prevStates, ...newFiles]);
+        setImageStates((prevStates) => [...prevStates, ...newFiles]);
 
-      newFiles.map(async (file) => {
-        promises.push(
-          new Promise(async (resolve) => {
-            const fileRef = storageRef(file.fileName);
+        newFiles.map(async (file) => {
+          promises.push(
+            new Promise(async (resolve) => {
+              const fileRef = storageRef(file.fileName);
 
-            await uploadBytes(fileRef, file.file as File);
+              await uploadBytes(fileRef, file.file as File);
 
-            const downloadUrl = await getDownloadURL(fileRef);
+              const downloadUrl = await getDownloadURL(fileRef);
 
-            resolve({
-              file: file.file,
-              fileName: file.fileName,
-              state: file.state,
-              downloadUrl: downloadUrl,
-            });
-          })
-        );
-      });
-      // wait for promises
-      const result = await Promise.all(promises);
-      const urls: string[] = [];
-
-      result.map((f) => {
-        urls.push(f.downloadUrl);
-        setImageStates((imageStates) => {
-          const newState = structuredClone(imageStates);
-          const imageState = newState.find(
-            (image) => image.fileName === f.fileName
+              resolve({
+                file: file.file,
+                fileName: file.fileName,
+                state: file.state,
+                downloadUrl: downloadUrl,
+              });
+            })
           );
-
-          if (imageState) {
-            imageState.downloadUrl = f.downloadUrl;
-            imageState.state = "success";
-          }
-
-          return newState;
         });
-      });
+        // wait for promises
+        const result = await Promise.all(promises);
+        const urls: string[] = [];
 
-      await onFilesAdded?.(urls);
-    } catch (error) {
-      console.error(error);
-      if (error instanceof Error) {
-        setError(error.message);
+        result.map((f) => {
+          urls.push(f.downloadUrl);
+          setImageStates((imageStates) => {
+            const newState = structuredClone(imageStates);
+            const imageState = newState.find(
+              (image) => image.fileName === f.fileName
+            );
+
+            if (imageState) {
+              imageState.downloadUrl = f.downloadUrl;
+              imageState.state = "success";
+            }
+
+            return newState;
+          });
+        });
+
+        await onFilesAdded?.(urls);
+      } catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+          setError(error.message);
+        }
+      } finally {
+        setUploading(false);
       }
-    } finally {
-      setUploading(false);
-    }
-  }, []);
+    },
+    [onFilesAdded]
+  );
 
   useEffect(() => {
     if (photos && photos?.length > 0) {
@@ -102,6 +105,7 @@ function ImageDropzone({ onFilesAdded, onFileDelete, photos }: InputProps) {
           fileName: "",
         });
       });
+      setImageStates(photo);
     }
   }, [photos]);
 

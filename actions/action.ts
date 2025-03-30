@@ -29,11 +29,13 @@ export async function addCategory(name: string, path: string) {
 
 export async function deleteCategory(id: number, path: string) {
   try {
-    await prisma.categories.delete({
-      where: {
-        id: id,
-      },
-    });
+    await prisma.$transaction([
+      prisma.categories.delete({
+        where: {
+          id: id,
+        },
+      }),
+    ]);
 
     revalidatePath(path);
   } catch (error) {
@@ -138,17 +140,16 @@ export async function addBook({
 }
 
 export async function deleteBook(id: number, path: string) {
-  try {
-    await prisma.books.delete({
-      where: {
-        id: id,
-      },
-    });
+  await prisma.$transaction(
+    async (t) =>
+      await t.books.delete({
+        where: {
+          id: id,
+        },
+      })
+  );
 
-    revalidatePath(path);
-  } catch (error) {
-    throw error;
-  }
+  revalidatePath(path);
 }
 
 export async function editBook({
@@ -215,16 +216,16 @@ export async function addPhoto(
   path: string
 ) {
   try {
-    await prisma.$transaction(async (t) => {
+    const newPhoto = await prisma.$transaction(async (t) => {
       if (table === "book") {
-        await t.book_photos.create({
+        return await t.book_photos.create({
           data: {
             book_id: id,
             url: url,
           },
         });
       } else if (table === "activity") {
-        await t.activity_photos.create({
+        return await t.activity_photos.create({
           data: {
             activity_id: id,
             url: url,
@@ -233,6 +234,34 @@ export async function addPhoto(
       }
     });
     revalidatePath(path);
+    return {
+      photo_id: newPhoto?.photo_id as number,
+      url: newPhoto?.url as string,
+    };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deletePhoto(table: string, id: number, path: string) {
+  try {
+    const result = await prisma.$transaction(async (t) => {
+      if (table === "book") {
+        await t.book_photos.delete({
+          where: {
+            photo_id: id,
+          },
+        });
+      } else if (table === "activity") {
+        await t.activity_photos.delete({
+          where: {
+            photo_id: id,
+          },
+        });
+      }
+    });
+    revalidatePath(path);
+    return result;
   } catch (error) {
     throw error;
   }
