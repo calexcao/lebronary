@@ -144,6 +144,11 @@ function AddBookDialog({ open, setOpen, book }: props) {
   };
 
   const handleFileDelete = async (url: string) => {
+    // Remove the URL from the form photos array
+    const currentPhotos = form.getValues("photos");
+    const updatedPhotos = currentPhotos.filter((photo) => photo !== url);
+    form.setValue("photos", updatedPhotos);
+
     if (book) {
       const photoToDelete = book.book_photos?.filter((p) => p.url == url);
       if (photoToDelete && photoToDelete.length > 0) {

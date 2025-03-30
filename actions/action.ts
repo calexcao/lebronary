@@ -2,6 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { deleteObject } from "firebase/storage";
+import { storageRef } from "@/lib/firebase";
 
 //Category
 export async function addCategory(name: string, path: string) {
@@ -140,16 +142,35 @@ export async function addBook({
 }
 
 export async function deleteBook(id: number, path: string) {
-  await prisma.$transaction(
-    async (t) =>
-      await t.books.delete({
-        where: {
-          id: id,
-        },
-      })
-  );
+  try {
+    const book_photos = await prisma.book_photos.findMany({
+      where: { book_id: id },
+    });
 
-  revalidatePath(path);
+    await prisma.$transaction(
+      async (t) =>
+        await t.books.delete({
+          where: {
+            id: id,
+          },
+        })
+    );
+
+    // After database deletion, delete each photo from Firebase storage
+    for (const photo of book_photos) {
+      try {
+        const fileRef = storageRef(photo.url);
+        await deleteObject(fileRef);
+      } catch (firebaseError) {
+        console.error("Error deleting image from Firebase:", firebaseError);
+      }
+    }
+
+    revalidatePath(path);
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    throw error;
+  }
 }
 
 export async function editBook({
