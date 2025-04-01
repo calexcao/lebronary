@@ -229,6 +229,118 @@ export async function editBook({
   }
 }
 
+//Activities
+export async function addActivity({
+  title,
+  description,
+  date,
+  start_time,
+  end_time,
+  age_group,
+  capacity,
+  photos,
+  path,
+}: {
+  title: string;
+  description: string;
+  date: Date;
+  start_time: string;
+  end_time: string;
+  age_group: string;
+  capacity: number;
+  photos: string[];
+  path: string;
+}) {
+  try {
+    await prisma.$transaction(async (t) => {
+      const result = await t.activities.create({
+        data: {
+          title: title,
+          description: description,
+          date: date,
+          start_time: start_time,
+          end_time: end_time,
+          age_group: age_group,
+          capacity: capacity,
+        },
+      });
+
+      if (photos && photos.length > 0) {
+        const data = photos.map((photo) => ({
+          activity_id: result.activity_id,
+          url: photo,
+        }));
+
+        await t.activity_photos.createMany({ data });
+      }
+    });
+
+    revalidatePath(path);
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteActivity(id: number, path: string) {
+  try {
+    await prisma.$transaction([
+      prisma.activities.delete({
+        where: {
+          activity_id: id,
+        },
+      }),
+    ]);
+
+    revalidatePath(path);
+  } catch (error) {
+    throw error;
+  }
+}
+export async function editActivity({
+  activity_id,
+  title,
+  description,
+  date,
+  start_time,
+  end_time,
+  age_group,
+  capacity,
+  path,
+}: {
+  activity_id: number;
+  title: string;
+  description: string;
+  date: Date;
+  start_time: string;
+  end_time: string;
+  age_group: string;
+  capacity: number;
+  path: string;
+}) {
+  try {
+    await prisma.$transaction([
+      prisma.activities.update({
+        where: {
+          activity_id: activity_id,
+        },
+        data: {
+          title: title,
+          description: description,
+          date: date,
+          start_time: start_time,
+          end_time: end_time,
+          age_group: age_group,
+          capacity: capacity,
+        },
+      }),
+    ]);
+
+    revalidatePath(path);
+  } catch (error) {
+    throw error;
+  }
+}
+
 //Photos
 export async function addPhoto(
   table: string,

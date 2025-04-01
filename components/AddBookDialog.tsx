@@ -73,6 +73,7 @@ function AddBookDialog({ open, setOpen, book }: props) {
     []
   );
   const path = usePathname();
+  const [resetKey, setResetKey] = useState(0);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -129,7 +130,18 @@ function AddBookDialog({ open, setOpen, book }: props) {
       await addBook({ ...values, path });
     }
     toast("Book Saved");
-    form.reset();
+
+    form.reset({
+      name: "",
+      isbn: "",
+      author: "",
+      publish_year: new Date().getFullYear(),
+      copies: 1,
+      category: [],
+      photos: [],
+    });
+
+    setResetKey((prev) => prev + 1);
   };
 
   const handleFileAdd = async (files: string[]) => {
@@ -144,7 +156,6 @@ function AddBookDialog({ open, setOpen, book }: props) {
   };
 
   const handleFileDelete = async (url: string) => {
-    // Remove the URL from the form photos array
     const currentPhotos = form.getValues("photos");
     const updatedPhotos = currentPhotos.filter((photo) => photo !== url);
     form.setValue("photos", updatedPhotos);
@@ -305,6 +316,7 @@ function AddBookDialog({ open, setOpen, book }: props) {
                 name="photos"
                 render={({ field }) => (
                   <ImageDropzone
+                    key={resetKey}
                     photos={field.value}
                     onFilesAdded={handleFileAdd}
                     onFileDelete={handleFileDelete}
