@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { deleteObject } from "firebase/storage";
 import { storageRef } from "@/lib/firebase";
+import bcrypt from "bcryptjs";
 
 //Category
 export async function addCategory(name: string, path: string) {
@@ -336,6 +337,93 @@ export async function editActivity({
     ]);
 
     revalidatePath(path);
+  } catch (error) {
+    throw error;
+  }
+}
+
+//Users
+export async function addUser(
+  name: string,
+  email: string,
+  card: string,
+  role: string,
+  is_active: boolean,
+  path: string
+) {
+  try {
+    //Temporary password
+    const hashPassword = await bcrypt.hash("password", 10);
+
+    const user = await prisma.$transaction([
+      prisma.users.create({
+        data: {
+          name: name,
+          email: email,
+          card: card,
+          password: role === "staff" ? hashPassword : "",
+          role: role,
+          is_active: is_active,
+          image: "",
+          status: role === "staff" ? "pending" : "",
+        },
+      }),
+    ]);
+    revalidatePath(path);
+    return user;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteUser(id: number, path: string) {
+  try {
+    const result = await prisma.$transaction(async (transaction) => {
+      await transaction.users.delete({
+        where: {
+          id: id,
+        },
+      });
+    });
+
+    revalidatePath(path);
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function editUser(
+  id: number,
+  name: string,
+  email: string,
+  card: string,
+  role: string,
+  is_active: boolean,
+  path: string
+) {
+  if (!id) return { message: "Missing data is required" };
+
+  try {
+    await prisma.$transaction(async (transaction) => {
+      await transaction.users.update({
+        where: {
+          id: id,
+        },
+        data: {
+          name: name,
+          email: email,
+          role: role,
+          card: card,
+          is_active: is_active,
+        },
+      });
+    });
+
+    if (path) revalidatePath(path);
+
+    return { message: "user updated" };
   } catch (error) {
     throw error;
   }
