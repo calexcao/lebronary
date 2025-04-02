@@ -8,14 +8,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { redirect } from "next/navigation";
 
 function SearchBar() {
   async function Search(formData: FormData) {
     "use server";
-    const search_by = formData.get("search_by");
-    const search = formData.get("search");
+    const search_by = formData.get("search_by") as string;
+    const search = formData.get("search") as string;
 
-    console.log(search_by, search);
+    if (search && search_by) {
+      redirect(
+        `/search?query=${encodeURIComponent(
+          search
+        )}&search_by=${encodeURIComponent(search_by)}`
+      );
+    }
   }
 
   return (

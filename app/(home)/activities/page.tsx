@@ -7,20 +7,15 @@ import { Button } from "@/components/ui/button";
 async function Activities({
   searchParams,
 }: {
-  searchParams: { from?: string; to?: string };
+  searchParams: { from: string; to: string };
 }) {
-  const fromDate = searchParams.from
-    ? parse(searchParams.from, "yyyy-MM-dd", new Date())
-    : new Date();
-  const toDate = searchParams.to
-    ? addDays(parse(searchParams.to, "yyyy-MM-dd", new Date()), 1)
-    : addDays(new Date(), 1);
+  const params = await searchParams;
 
   const activities = await prisma.activities.findMany({
     where: {
       date: {
-        gte: fromDate,
-        lte: toDate,
+        gte: parse(params.from, "yyyy-MM-dd", new Date()),
+        lte: addDays(parse(params.to, "yyyy-MM-dd", new Date()), 1),
       },
     },
     orderBy: {

@@ -21,8 +21,8 @@ function Navbar() {
   const to = format(addWeeks(new Date(), 2), "yyyy-MM-dd");
 
   const navItems = [
-    { href: "/", icon: <Library size={20} />, text: "Cataloge" },
-    { href: "/", icon: <Map size={20} />, text: "Locations" },
+    { href: "/", icon: <Library size={20} />, text: "Catalog" },
+    { href: "/locations", icon: <Map size={20} />, text: "Locations" },
     {
       href: `/activities?from=${from}&to=${to}`,
       icon: <CalendarCheck size={20} />,
