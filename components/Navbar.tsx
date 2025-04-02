@@ -14,12 +14,20 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "./ui/navigation-menu";
+import { addWeeks, format } from "date-fns";
 
 function Navbar() {
+  const from = format(new Date(), "yyyy-MM-dd");
+  const to = format(addWeeks(new Date(), 2), "yyyy-MM-dd");
+
   const navItems = [
     { href: "/", icon: <Library size={20} />, text: "Cataloge" },
     { href: "/", icon: <Map size={20} />, text: "Locations" },
-    { href: "/", icon: <CalendarCheck size={20} />, text: "Activities" },
+    {
+      href: `/activities?from=${from}&to=${to}`,
+      icon: <CalendarCheck size={20} />,
+      text: "Activities",
+    },
   ];
 
   const moreItems = [
