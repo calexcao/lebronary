@@ -487,3 +487,43 @@ export async function deletePhoto(table: string, id: number, path: string) {
     throw error;
   }
 }
+
+//Fines
+export async function markAsPaid(id: number, path: string) {
+  try {
+    await prisma.$transaction(async (transaction) => {
+      await transaction.fines.update({
+        where: {
+          fine_id: id,
+        },
+        data: {
+          paid_date: new Date(),
+        },
+      });
+    });
+
+    revalidatePath(path);
+
+    return { message: "Fine paid" };
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteFine(id: number, path: string) {
+  try {
+    await prisma.$transaction(async (transaction) => {
+      await transaction.fines.delete({
+        where: {
+          fine_id: id,
+        },
+      });
+    });
+
+    revalidatePath(path);
+
+    return { message: "Fine deleted" };
+  } catch (error) {
+    throw error;
+  }
+}

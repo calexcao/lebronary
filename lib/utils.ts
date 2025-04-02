@@ -60,3 +60,27 @@ export function getTimeSlots(
 
   return timeArray;
 }
+
+//https://medium.com/@sungbinkim98
+export const getDateWithOffset = (date: Date) => {
+  if (typeof date === "string") {
+    const datePart = (date as string).split("T")[0];
+    const formatDate = new Date(
+      new Date(datePart).getTime() + new Date().getTimezoneOffset() * 60000
+    );
+    return formatDate;
+  }
+  const dt = new Date();
+  return new Date(date.getTime() + dt.getTimezoneOffset() * 60000);
+};
+
+export function formatAmount(amount: number, currency: string): string {
+  const numberFormat = new Intl.NumberFormat(["en-US"], {
+    style: "currency",
+    currency: currency,
+    currencyDisplay: "symbol",
+  });
+
+  const formatAmount = numberFormat.format(amount);
+  return formatAmount === "$NaN" ? "" : formatAmount;
+}
