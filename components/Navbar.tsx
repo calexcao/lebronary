@@ -37,7 +37,7 @@ function Navbar() {
   ];
 
   return (
-    <nav className="container mx-auto flex justify-between items-center py-2">
+    <nav className="container mx-auto flex justify-between items-center py-2 border-t border-b">
       <div className="flex items-center space-x-6">
         {navItems.map((item) => (
           <Link
