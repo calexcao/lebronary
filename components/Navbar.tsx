@@ -15,6 +15,7 @@ import {
   NavigationMenuTrigger,
 } from "./ui/navigation-menu";
 import { addWeeks, format } from "date-fns";
+import UserButton from "./UserButton";
 
 function Navbar() {
   const from = format(new Date(), "yyyy-MM-dd");
@@ -56,7 +57,7 @@ function Navbar() {
                 More
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <div className="grid w-[180px]">
+                <div className="w-[180px]">
                   {moreItems.map((item) => (
                     <Link
                       key={item.text}
@@ -72,6 +73,9 @@ function Navbar() {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
+      </div>
+      <div>
+        <UserButton />
       </div>
     </nav>
   );
