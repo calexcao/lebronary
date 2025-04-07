@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 declare module "next-auth" {
   interface Session {
     user: {
+      id: string;
       role?: string;
     } & DefaultSession["user"];
   }
@@ -51,14 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }
           }
         }
-
-        return {
-          id: user.id.toString(),
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          card: user.card,
-        };
+        return user;
       },
     }),
   ],

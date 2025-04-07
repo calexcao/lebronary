@@ -84,7 +84,7 @@ async function SearchPage({
               key={result.id}
               className="group relative transition-transform duration-300 hover:scale-105"
             >
-              <Link href={`/books/${result.id}`}>
+              <Link href={`/book/${result.id}`}>
                 <div className="aspect-[2/3] relative overflow-hidden rounded-md">
                   <Image
                     src={result.book_photos[0]?.url}

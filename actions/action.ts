@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { deleteObject } from "firebase/storage";
 import { storageRef } from "@/lib/firebase";
 import bcrypt from "bcryptjs";
+import { auth } from "@/auth";
+import { addDays } from "date-fns";
 
 //Category
 export async function addCategory(name: string, path: string) {
@@ -95,6 +97,7 @@ export async function addBook({
   photos,
   publish_year,
   author,
+  description,
 }: {
   name: string;
   isbn: string;
@@ -104,6 +107,7 @@ export async function addBook({
   photos: string[];
   publish_year: number;
   author: string;
+  description?: string;
 }) {
   try {
     await prisma.$transaction(async (t) => {
@@ -114,6 +118,7 @@ export async function addBook({
           copies: copies,
           publish_year: publish_year,
           author: author,
+          description: description,
         },
       });
 
@@ -183,6 +188,7 @@ export async function editBook({
   path,
   publish_year,
   author,
+  description,
 }: {
   id: number;
   name: string;
@@ -192,6 +198,7 @@ export async function editBook({
   path: string;
   publish_year: number;
   author: string;
+  description?: string;
 }) {
   try {
     await prisma.$transaction(async (t) => {
@@ -205,6 +212,7 @@ export async function editBook({
           copies: copies,
           publish_year: publish_year,
           author: author,
+          description: description,
         },
       });
 
@@ -228,6 +236,37 @@ export async function editBook({
   } catch (error) {
     throw error;
   }
+}
+
+export async function cancelHold(id: number, path: string) {
+  await prisma.$transaction((t) =>
+    t.reservations.delete({
+      where: {
+        reservation_id: id,
+      },
+    })
+  );
+
+  revalidatePath(path);
+}
+
+export async function placeHold(id: number, path: string) {
+  const session = await auth();
+  if (!session) {
+    throw new Error("You must be logged in to place a hold.");
+  }
+  await prisma.$transaction((t) =>
+    t.reservations.create({
+      data: {
+        book_id: id,
+        user_id: session?.user.id,
+        date: new Date(),
+        expiration: addDays(new Date(), 15),
+      },
+    })
+  );
+
+  revalidatePath(path);
 }
 
 //Activities
@@ -376,7 +415,7 @@ export async function addUser(
   }
 }
 
-export async function deleteUser(id: number, path: string) {
+export async function deleteUser(id: string, path: string) {
   try {
     const result = await prisma.$transaction(async (transaction) => {
       await transaction.users.delete({
@@ -395,7 +434,7 @@ export async function deleteUser(id: number, path: string) {
 }
 
 export async function editUser(
-  id: number,
+  id: string,
   name: string,
   email: string,
   card: string,
@@ -527,3 +566,74 @@ export async function deleteFine(id: number, path: string) {
     throw error;
   }
 }
+
+//Staff Picks
+export async function addToStaffPicks(id: number, path: string) {
+  const session = await auth();
+  if (!session) {
+    throw new Error("You must be logged in to add to staff picks.");
+  }
+
+  try {
+    await prisma.$transaction([
+      prisma.staff_picks.create({
+        data: {
+          book_id: id,
+          user_id: session?.user.id,
+          date: new Date(),
+        },
+      }),
+    ]);
+  } catch (error) {
+    throw error;
+  }
+
+  revalidatePath(path);
+}
+
+export async function removeFromStaffPicks(id: number, path: string) {
+  try {
+    await prisma.$transaction([
+      prisma.staff_picks.delete({
+        where: {
+          pick_id: id,
+        },
+      }),
+    ]);
+  } catch (error) {
+    throw error;
+  }
+
+  revalidatePath(path);
+}
+
+//Ratings
+export async function addRating(
+  id: number,
+  prevState: State,
+  formData: FormData
+) {
+  const session = await auth();
+  if (!session) {
+    return { message: "You must be logged in to add a rating." };
+  }
+
+  await prisma.$transaction([
+    prisma.ratings.create({
+      data: {
+        book_id: id,
+        user_id: session?.user.id,
+        rating: +formData.get("rating")!,
+        review: formData.get("comment") as string,
+      },
+    }),
+  ]);
+  return {
+    message: "Thank you for your feedback!",
+  };
+}
+
+//Extra
+export type State = {
+  message?: string | null;
+};

@@ -33,14 +33,16 @@ export default async function HomePage() {
         <CarouselContent>
           {arrivals.map((book) => (
             <CarouselItem key={book.id} className="basis-auto">
-              <Link href={`/books/${book.id}`}>
-                <Image
-                  className="aspect-[2/3] rounded-md"
-                  src={book.book_photos[0]?.url}
-                  alt={book.name}
-                  width={300}
-                  height={0}
-                />
+              <Link href={`/book/${book.id}`}>
+                <div className="w-[300px] h-[450px] relative">
+                  <Image
+                    src={book.book_photos[0]?.url}
+                    alt={book.name}
+                    fill
+                    className="object-cover rounded-md"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
                 <p className="truncate font-semibold text-lg">{book.name}</p>
               </Link>
             </CarouselItem>

@@ -1,4 +1,11 @@
-import { CalendarCheck, Library, MapIcon, Receipt, User } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  Library,
+  MapIcon,
+  Receipt,
+  User,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +22,7 @@ const menuItems = [
   { href: "/admin/activities", icon: <CalendarCheck />, text: "Activities" },
   { href: "/admin/users", icon: <User />, text: "Users" },
   { href: "/admin/fines", icon: <Receipt />, text: "Fines" },
+  { href: "/", icon: <ArrowLeft />, text: "Home" },
 ];
 
 function AdminSidebar() {

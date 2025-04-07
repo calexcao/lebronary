@@ -84,3 +84,7 @@ export function formatAmount(amount: number, currency: string): string {
   const formatAmount = numberFormat.format(amount);
   return formatAmount === "$NaN" ? "" : formatAmount;
 }
+
+export function getAvatarLetter(name: string) {
+  return name.split(" ")[0].charAt(0).toUpperCase();
+}

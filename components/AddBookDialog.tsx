@@ -42,6 +42,7 @@ import {
 } from "@/actions/action";
 import { toast } from "sonner";
 import ImageDropzone from "./ImageDropzone";
+import { Textarea } from "./ui/textarea";
 
 type props = {
   open: boolean;
@@ -54,6 +55,7 @@ const formSchema = z.object({
   name: z.string().nonempty(),
   isbn: z.string().min(10).max(13),
   author: z.string().nonempty(),
+  description: z.string().optional(),
   publish_year: z.coerce
     .number({ invalid_type_error: "Must be a number" })
     .positive({ message: "Must be a positive number" })
@@ -81,6 +83,7 @@ function AddBookDialog({ open, setOpen, book }: props) {
       name: "",
       isbn: "",
       author: "",
+      description: "",
       publish_year: new Date().getFullYear(),
       copies: 1,
       category: [],
@@ -89,11 +92,13 @@ function AddBookDialog({ open, setOpen, book }: props) {
   });
 
   useEffect(() => {
-    (async () => {
-      const cats = await getCategories(0, -1);
-      setCategories(cats.data);
-    })();
-  }, []);
+    if (open) {
+      (async () => {
+        const cats = await getCategories(0, -1);
+        setCategories(cats.data || []);
+      })();
+    }
+  }, [open]);
 
   useEffect(() => {
     if (book) {
@@ -108,6 +113,7 @@ function AddBookDialog({ open, setOpen, book }: props) {
       );
       form.setValue("photos", book.book_photos?.map((p) => p.url) || []);
       form.setValue("author", book.author);
+      form.setValue("description", book.description);
     }
   }, [book, form]);
 
@@ -135,6 +141,7 @@ function AddBookDialog({ open, setOpen, book }: props) {
       name: "",
       isbn: "",
       author: "",
+      description: "",
       publish_year: new Date().getFullYear(),
       copies: 1,
       category: [],
@@ -205,6 +212,21 @@ function AddBookDialog({ open, setOpen, book }: props) {
               />
               <FormField
                 control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="mb-1">Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Provide a description of the book"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="isbn"
                 render={({ field }) => (
                   <FormItem>
@@ -216,32 +238,34 @@ function AddBookDialog({ open, setOpen, book }: props) {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="copies"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel># of Copies</FormLabel>
-                    <FormControl>
-                      <Input placeholder="1" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="publish_year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Publish Year</FormLabel>
-                    <FormControl>
-                      <Input placeholder="2025" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <FormField
+                  control={form.control}
+                  name="copies"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel># of Copies</FormLabel>
+                      <FormControl>
+                        <Input placeholder="1" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="publish_year"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Publish Year</FormLabel>
+                      <FormControl>
+                        <Input placeholder="2025" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="category"

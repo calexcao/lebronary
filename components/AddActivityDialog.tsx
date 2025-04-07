@@ -137,7 +137,7 @@ function AddAcitvityDialog({ setOpen, open, activity }: Props) {
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-1">
+            <div className="grid grid-cols-2 gap-2">
               <FormField
                 control={form.control}
                 name="start_time"
