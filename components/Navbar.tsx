@@ -6,6 +6,7 @@ import {
   Computer,
   Lock,
   IdCard,
+  ScanBarcode,
 } from "lucide-react";
 import {
   NavigationMenu,
@@ -35,6 +36,7 @@ function Navbar() {
     { href: "/", icon: <IdCard size={20} />, text: "Library Card" },
     { href: "/", icon: <Lock size={20} />, text: "Book Room" },
     { href: "/", icon: <Computer size={20} />, text: "Rent Equipment" },
+    { href: "/kiosk", icon: <ScanBarcode size={20} />, text: "Virtual Kiosk" },
   ];
 
   return (

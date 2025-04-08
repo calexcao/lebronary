@@ -7,7 +7,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center border-2 rounded-md p-8">
+      <div className="text-center border rounded-md p-8">
         <p className="-ml-4">
           <Logo />
         </p>

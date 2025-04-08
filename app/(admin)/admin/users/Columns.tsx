@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Check, CircleOff } from "lucide-react";
 
 export type User = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   card: string;

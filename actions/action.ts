@@ -5,8 +5,13 @@ import { revalidatePath } from "next/cache";
 import { deleteObject } from "firebase/storage";
 import { storageRef } from "@/lib/firebase";
 import bcrypt from "bcryptjs";
-import { auth } from "@/auth";
-import { addDays } from "date-fns";
+import { auth, signIn, signOut } from "@/auth";
+import { addDays, differenceInCalendarDays } from "date-fns";
+import { z } from "zod";
+import { stripe } from "@/lib/stripe";
+import { formatAmountForStripe } from "@/lib/utils";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 //Category
 export async function addCategory(name: string, path: string) {
@@ -468,6 +473,69 @@ export async function editUser(
   }
 }
 
+const passwordFormSchema = z.object({
+  new_password: z.string().min(8),
+});
+
+export async function updateProfile(prevState: State, formData: FormData) {
+  const new_password = formData.get("new_password") as string;
+  const old_password = formData.get("old_password") as string;
+
+  const session = await auth();
+
+  if (!session) {
+    await signIn();
+  }
+
+  const user = await prisma.users.findUnique({
+    where: {
+      id: session?.user.id,
+    },
+  });
+
+  if (!user) {
+    return { message: "Invalid user" };
+  }
+
+  if (new_password) {
+    const passwordValidate = passwordFormSchema.safeParse({
+      new_password: new_password,
+    });
+
+    if (!passwordValidate.success) {
+      return { message: "Invalid password" };
+    }
+
+    const password_match = await bcrypt.compare(old_password, user.password);
+
+    if (!password_match) {
+      return { message: "Invalid password" };
+    }
+
+    const new_hash_password = bcrypt.hashSync(new_password, 10);
+
+    await prisma.users.update({
+      where: {
+        id: session?.user.id,
+      },
+      data: {
+        password: new_hash_password,
+        status: "",
+      },
+    });
+
+    await signOut({
+      redirectTo: `/auth/signin?callbackUrl=${encodeURIComponent(
+        "/admin"
+      )}&message=${encodeURIComponent("password updated, Please log in.")}`,
+    });
+  }
+
+  return {
+    message: "profile updated",
+  };
+}
+
 //Photos
 export async function addPhoto(
   table: string,
@@ -567,6 +635,56 @@ export async function deleteFine(id: number, path: string) {
   }
 }
 
+export async function createCheckoutSession(data: FormData) {
+  const session = await auth();
+  if (!session) throw new Error("you must be logged in");
+
+  const fine_id = +data.get("fine_id")!;
+  const fine = await prisma.fines.findUnique({
+    where: {
+      fine_id: fine_id,
+    },
+    include: {
+      borrowings: {
+        include: {
+          books: {
+            select: { name: true },
+          },
+        },
+      },
+    },
+  });
+
+  const checkoutSession = await stripe.checkout.sessions.create({
+    mode: "payment",
+    submit_type: "pay",
+    metadata: {
+      fine_id: fine_id,
+    },
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "cad",
+          product_data: {
+            name: `Late return fine for ${fine?.borrowings.books.name}`,
+          },
+          unit_amount: formatAmountForStripe(
+            fine?.amount as unknown as number,
+            "CAD"
+          ),
+        },
+      },
+    ],
+    success_url: `${(
+      await headers()
+    ).get("origin")}/fine/result?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${(await headers()).get("origin")}`,
+  });
+
+  redirect(checkoutSession.url!);
+}
+
 //Staff Picks
 export async function addToStaffPicks(id: number, path: string) {
   const session = await auth();
@@ -630,6 +748,112 @@ export async function addRating(
   ]);
   return {
     message: "Thank you for your feedback!",
+  };
+}
+
+//Kiosk
+export async function checkout(prevState: State, formData: FormData) {
+  const card = formData.get("card") as string;
+  const isbn = formData.get("isbn")?.toString().replaceAll("-", "");
+
+  const book = await prisma.books.findFirst({
+    where: {
+      isbn: isbn,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const user = await prisma.users.findFirst({
+    where: {
+      card: card,
+    },
+  });
+
+  if (book && user) {
+    const date = new Date();
+    await prisma.$transaction(
+      async (t) =>
+        await t.borrowings.create({
+          data: {
+            book_id: book.id,
+            user_id: user.id,
+            borrow_date: date,
+            due_date: addDays(date, 14),
+          },
+        })
+    );
+    return {
+      message: "You have successfully checked out the book",
+    };
+  }
+  return {
+    message: "Checkout failed, please see a librarian",
+  };
+}
+
+export async function checkin(prevState: State, formData: FormData) {
+  const isbn = formData.get("isbn")?.toString().replaceAll("-", "");
+  const book = await prisma.books.findFirst({
+    where: {
+      isbn: isbn,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  const borrowing = await prisma.borrowings.findFirst({
+    where: {
+      book_id: book?.id,
+    },
+  });
+
+  if (!borrowing) {
+    return {
+      message: "Invalid transaction, please see a librarian",
+    };
+  }
+
+  const user_id = borrowing?.user_id;
+  const return_date = new Date();
+  const dayDiff = differenceInCalendarDays(
+    return_date,
+    borrowing?.due_date as Date
+  );
+  let message = "";
+
+  await prisma.$transaction(async (t) => {
+    await t.borrowings.update({
+      where: {
+        borrowing_id: borrowing?.borrowing_id,
+      },
+      data: {
+        return_date: return_date,
+      },
+    });
+
+    if (dayDiff > 0) {
+      const amount = dayDiff * 0.5;
+      await t.fines.create({
+        data: {
+          fine_date: return_date,
+          amount: amount,
+          user_id: user_id,
+          borrowing_id: borrowing?.borrowing_id,
+        },
+      });
+      message = `You have a fine of $${amount} for late return`;
+    } else {
+      message = "Book returned successfully";
+    }
+  });
+
+  return {
+    message: message,
   };
 }
 

@@ -10,7 +10,8 @@ import RemoveFromStaffPicksButton from "@/components/RemoveFromStaffPicksButton"
 import SignInButton from "@/components/SignInButton";
 import { Separator } from "@/components/ui/separator";
 import { prisma } from "@/lib/prisma";
-import { BookOpen } from "lucide-react";
+import { formatISBN } from "@/lib/utils";
+import { BookOpen, ScanBarcode } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -109,11 +110,15 @@ async function BookPage({ params }: { params: { id: number } }) {
                 </div>
               ))}
           </div>
-          <p className="max-w-250 text-muted-foreground py-4">
+          <p className="max-w-230 text-muted-foreground py-4">
             {book_details?.description}
           </p>
+          <p className="flex flex-row items-center text-muted-foreground text-sm">
+            <ScanBarcode className="mr-2" />{" "}
+            {formatISBN(book_details?.isbn as string)}
+          </p>
         </div>
-        <div className="flex flex-col space-y-2 mt-4 flex-grow">
+        <div className="flex flex-col space-y-2 mt-4 flex-grow max-w-[180px]">
           <div className=" text-primary flex flex-col p-2 border-l-4 border-green-500">
             <p className="text-green-400 font-medium pb-2">Availability</p>
             <p className="text-sm flex flex-col">

@@ -3,15 +3,20 @@
 import { cancelHold } from "@/actions/action";
 import { Button } from "./ui/button";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-function CancelHoldButton({ id }: { id: number }) {
+function CancelHoldButton({ id, styles }: { id: number; styles?: string }) {
   const path = usePathname();
 
   const handleCancelHold = async () => {
     await cancelHold(id, path);
   };
 
-  return <Button onClick={handleCancelHold}>Cancel Hold</Button>;
+  return (
+    <Button onClick={handleCancelHold} className={cn(styles)}>
+      Cancel Hold
+    </Button>
+  );
 }
 
 export default CancelHoldButton;

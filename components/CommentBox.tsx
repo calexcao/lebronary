@@ -28,7 +28,7 @@ function CommentBox({ id }: { id: number }) {
             name="comment"
             placeholder="Leave your comments"
           />
-          <Button type="submit" className="mt-3" disabled={isPending}>
+          <Button type="submit" className="mt-3 mb-2" disabled={isPending}>
             Submit
           </Button>
           <div>{state?.message ? <p>{state.message}</p> : null}</div>

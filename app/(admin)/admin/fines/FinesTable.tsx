@@ -30,6 +30,7 @@ function FinesTable({ data }: { data: props }) {
   const handleMarkAsPaid = (item: Fine) => {
     setDialogReason("Paid");
     setDialogMessage("Are you sure you want to mark this fine as paid?");
+    setOpenConfirmationDialog(true);
     setItemToAction(item);
   };
 

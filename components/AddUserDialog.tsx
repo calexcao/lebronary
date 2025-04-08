@@ -40,7 +40,7 @@ type Props = {
 };
 
 const formSchema = z.object({
-  id: z.number().default(-1),
+  id: z.string().optional(),
   name: z.string().nonempty(),
   email: z.string().email(),
   card: z.string(),
@@ -63,7 +63,6 @@ function AddUserDialog({ open, setOpen, user }: Props) {
 
   useEffect(() => {
     if (user) {
-      form.setValue("id", user.id);
       form.setValue("name", user.name);
       form.setValue("email", user.email);
       form.setValue("role", user.role);
@@ -75,7 +74,7 @@ function AddUserDialog({ open, setOpen, user }: Props) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (user) {
       await editUser(
-        values.id,
+        user.id,
         values.name,
         values.email,
         values.card,

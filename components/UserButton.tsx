@@ -34,15 +34,13 @@ async function UserButton() {
         ) : (
           <>
             {session.user.role === "staff" && (
-              <>
-                <DropdownMenuItem className="">
-                  <Link href="/admin">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/account">My Account</Link>
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem className="">
+                <Link href="/admin">Dashboard</Link>
+              </DropdownMenuItem>
             )}
+            <DropdownMenuItem>
+              <Link href="/account">My Account</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>
               <Link href="/profile">Profile</Link>
             </DropdownMenuItem>

@@ -9,11 +9,15 @@ declare module "next-auth" {
     user: {
       id: string;
       role?: string;
+      status?: string | null;
+      is_active?: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
+    status?: string | null;
     role?: string;
+    is_active?: boolean;
   }
 }
 
@@ -67,6 +71,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.email = user.email;
         token.name = user.name;
         token.role = user.role;
+        token.status = user.status;
+        token.is_active = user.is_active;
       }
       return token;
     },
@@ -76,6 +82,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.role = token.role as string;
+        session.user.status = token.status as string;
+        session.user.is_active = token.is_active as boolean;
       }
       return session;
     },
