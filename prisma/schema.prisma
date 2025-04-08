@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["typedSql"]
 }
 
 datasource db {
@@ -17,13 +18,13 @@ model books {
   id             Int              @id @default(autoincrement())
   isbn           String           @db.VarChar(13)
   name           String           @db.VarChar(255)
-  description     String?         @db.Text
   author         String           @db.VarChar(80)
   copies         Int              @db.SmallInt
   is_active      Boolean          @default(true)
   publish_year   Int              @db.SmallInt
   created_at     DateTime         @default(now()) @db.Timestamp(0)
   updated_at     DateTime         @default(now()) @db.Timestamp(0)
+  description    String?          @db.Text
   book_photos    book_photos[]
   borrowings     borrowings[]
   category_links category_links[]
@@ -85,7 +86,7 @@ model borrowings {
   user_id      String
   borrow_date  DateTime @db.Date
   due_date     DateTime @db.Date
-  return_date  DateTime @db.Date
+  return_date  DateTime? @db.Date
   books        books    @relation(fields: [book_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "borrowings_ibfk_1")
   users        users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "borrowings_ibfk_2")
   fines        fines[]
@@ -141,8 +142,10 @@ model staff_picks {
   user_id String
   date    DateTime @db.Date
   books   books    @relation(fields: [book_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "staff_picks_ibfk_1")
+  users   users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "staff_picks_ibfk_2")
 
   @@index([book_id], map: "book_id")
+  @@index([user_id], map: "user_id")
 }
 
 model users {
@@ -162,4 +165,5 @@ model users {
   fines        fines[]
   ratings      ratings[]
   reservations reservations[]
+  staff_picks  staff_picks[]
 }
