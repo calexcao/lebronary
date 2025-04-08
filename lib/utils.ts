@@ -88,3 +88,19 @@ export function formatAmount(amount: number, currency: string): string {
 export function getAvatarLetter(name: string) {
   return name.split(" ")[0].charAt(0).toUpperCase();
 }
+
+export function formatAmountForStripe(
+  amount: number,
+  currency: string
+): number {
+  const numberFormat = new Intl.NumberFormat(["en-US"], {
+    style: "currency",
+    currency: currency,
+    currencyDisplay: "symbol",
+  });
+
+  const parts = numberFormat.formatToParts(amount);
+  const hadDecimals = parts.some((part) => part.type === "decimal");
+
+  return hadDecimals ? Math.round(amount * 100) : amount;
+}
