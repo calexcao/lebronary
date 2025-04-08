@@ -2,17 +2,16 @@ import AddUserButton from "@/components/AddUserButton";
 import { prisma } from "@/lib/prisma";
 import UsersTable from "./UsersTable";
 
-async function UsersPage({
-  searchParams,
-}: {
-  searchParams: { page: string; limit: string };
-}) {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+async function UsersPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const offset = parseInt(params.page || "10");
-  const take = parseInt(params.limit || "10");
+
+  const offset = parseInt((params.page as string) || "10");
+  const take = parseInt((params.limit as string) || "10");
 
   const [users, total] = await prisma.$transaction([
-    prisma.users.findMany({ skip: offset, take }),
+    prisma.users.findMany({ skip: offset, take: take }),
     prisma.users.count(),
   ]);
 

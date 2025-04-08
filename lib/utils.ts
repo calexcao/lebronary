@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export type SearchParams = Promise<{
+  [key: string]: string | string[] | undefined;
+}>;
+
 export const pageSize = 10;
 
 export function formatISBN(isbn: string) {

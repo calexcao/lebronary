@@ -1,15 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import FinesTable from "./FinesTable";
 
-async function FinesPage({
-  searchParams,
-}: {
-  searchParams: { page: string; limit: string };
-}) {
-  const params = await searchParams;
-  const offset = parseInt(params.page || "10");
-  const take = parseInt(params.limit || "10");
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
+async function FinesPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+
+  const offset = parseInt((params.page as string) || "10");
+  const take = parseInt((params.limit as string) || "10");
   const [fines, total] = await prisma.$transaction([
     prisma.fines.findMany({
       skip: offset,
@@ -30,7 +28,7 @@ async function FinesPage({
   ]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col mt-9">
       <FinesTable
         data={{ data: JSON.parse(JSON.stringify(fines)), total: total }}
       />

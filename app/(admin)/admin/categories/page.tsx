@@ -2,17 +2,20 @@ import AddCategoryButton from "@/components/AddCategoryButton";
 import { prisma } from "@/lib/prisma";
 import CategoriesTable from "./CategoriesTable";
 
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
 async function CategoriesPage({
   searchParams,
 }: {
-  searchParams: { page: string; limit: string };
+  searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const offset = parseInt(params.page || "10");
-  const take = parseInt(params.limit || "10");
+
+  const offset = parseInt((params.page as string) || "10");
+  const take = parseInt((params.limit as string) || "10");
 
   const [categories, total] = await prisma.$transaction([
-    prisma.categories.findMany({ skip: offset, take }),
+    prisma.categories.findMany({ skip: offset, take: take }),
     prisma.categories.count(),
   ]);
 

@@ -3,19 +3,19 @@ import { prisma } from "@/lib/prisma";
 import { addDays, format, parse } from "date-fns";
 import { Calendar, Clock, Users, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SearchParams } from "@/lib/utils";
 
-async function Activities({
-  searchParams,
-}: {
-  searchParams: { from: string; to: string };
-}) {
-  const params = await searchParams;
+async function Activities(props: { searchParams: SearchParams }) {
+  const searchParams = await props.searchParams;
 
   const activities = await prisma.activities.findMany({
     where: {
       date: {
-        gte: parse(params.from, "yyyy-MM-dd", new Date()),
-        lte: addDays(parse(params.to, "yyyy-MM-dd", new Date()), 1),
+        gte: parse(searchParams.from as string, "yyyy-MM-dd", new Date()),
+        lte: addDays(
+          parse(searchParams.to as string, "yyyy-MM-dd", new Date()),
+          1
+        ),
       },
     },
     orderBy: {

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
+import { SearchParams } from "@/lib/utils";
 
 type Result = {
   id: number;
@@ -15,19 +16,15 @@ type Result = {
   book_photos: { url: string }[];
 };
 
-async function SearchPage({
-  searchParams,
-}: {
-  searchParams: { query: string; search_by: string };
-}) {
-  const params = await searchParams;
+async function SearchPage(props: { searchParams: SearchParams }) {
+  const params = await props.searchParams;
   const { query, search_by } = params;
   let results: Result[] = [];
 
   if (search_by === "title") {
     results = await prisma.books.findMany({
       where: {
-        name: { contains: query },
+        name: { contains: query as unknown as string },
       },
       include: {
         book_photos: {
@@ -48,7 +45,7 @@ async function SearchPage({
         category_links: {
           some: {
             categories: {
-              name: { contains: query },
+              name: { contains: query as unknown as string },
             },
           },
         },

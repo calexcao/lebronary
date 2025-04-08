@@ -9,6 +9,7 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 
 type PropType = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   field: ControllerRenderProps<any>;
   disableDates: boolean;
 };

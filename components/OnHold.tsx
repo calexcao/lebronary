@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { formatISBN } from "@/lib/utils";
-import { getRank } from "@prisma/client/sql";
 import Image from "next/image";
 import CancelHoldButton from "./CancelHoldButton";
 
@@ -26,10 +25,18 @@ async function OnHold() {
   });
 
   const getRankUser = async (book_id: number) => {
-    const rank = await prisma.$queryRawTyped(
-      getRank(book_id, session?.user.id as string)
-    );
-    return rank.length > 0 ? rank[0].queue_number : 0;
+    const rank = await prisma.$queryRaw`
+      SELECT user_rank.queue_number 
+      FROM (
+          SELECT r.user_id,
+                ROW_NUMBER() OVER (ORDER BY r.date) AS queue_number
+          FROM reservations r
+          WHERE book_id = ${book_id}
+      ) AS user_rank
+      WHERE user_rank.user_id = ${session?.user.id}
+    `;
+
+    return Array.isArray(rank) && rank.length > 0 ? rank[0].queue_number : 0;
   };
 
   return (
@@ -46,7 +53,10 @@ async function OnHold() {
                 >
                   <Image
                     className="rounded-md h-auto object-cover"
-                    src={result.books.book_photos[0].url}
+                    src={
+                      result.books.book_photos[0]?.url ||
+                      "/placeholder-book.jpg"
+                    }
                     alt={result.books.name}
                     width={120}
                     height={180}

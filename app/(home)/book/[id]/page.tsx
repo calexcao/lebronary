@@ -10,22 +10,23 @@ import RemoveFromStaffPicksButton from "@/components/RemoveFromStaffPicksButton"
 import SignInButton from "@/components/SignInButton";
 import { Separator } from "@/components/ui/separator";
 import { prisma } from "@/lib/prisma";
-import { formatISBN } from "@/lib/utils";
+import { formatISBN, SearchParams } from "@/lib/utils";
 import { BookOpen, ScanBarcode } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-async function BookPage({ params }: { params: { id: number } }) {
+async function BookPage(props: { params: SearchParams }) {
   const session = await auth();
-  const p = await params;
+  const p = await props.params;
+  const id = parseInt(p.id as string, 10);
   const [book_details, stats, reservation_count, reservation] =
     await prisma.$transaction([
       prisma.books.findUnique({
-        where: { id: +p.id },
+        where: { id: id },
         include: {
           staff_picks: {
             where: {
-              book_id: +p.id,
+              book_id: id,
               user_id: session?.user.id,
             },
             select: {
@@ -52,14 +53,14 @@ async function BookPage({ params }: { params: { id: number } }) {
       prisma.ratings.aggregate({
         _avg: { rating: true },
         _count: { rating: true },
-        where: { book_id: +p.id },
+        where: { book_id: id },
       }),
       prisma.reservations.count({
-        where: { book_id: +p.id },
+        where: { book_id: id },
       }),
       prisma.reservations.findFirst({
         where: {
-          book_id: +p.id,
+          book_id: id,
           user_id: session?.user.id,
         },
         select: { reservation_id: true },

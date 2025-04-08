@@ -3,21 +3,18 @@ import BackButton from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SearchParams } from "@/lib/utils";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 
 const SIGNIN_ERROR_URL = "/auth/signin/error?error=";
 
-async function SignInPage({
-  searchParams,
-}: {
-  searchParams: { callbackUrl: string };
-}) {
-  const params = await searchParams;
+async function SignInPage(props: { searchParams: SearchParams }) {
+  const params = await props.searchParams;
   const session = await auth();
 
   if (session?.user) {
-    redirect(params.callbackUrl || "/");
+    redirect((params.callbackUrl as string) || "/");
   }
 
   async function handleSignIn(formData: FormData) {
@@ -33,18 +30,18 @@ async function SignInPage({
         redirect(
           `${SIGNIN_ERROR_URL}${encodeURIComponent(
             "Invalid credentials"
-          )}&callbackUrl=${encodeURIComponent(params.callbackUrl)}`
+          )}&callbackUrl=${encodeURIComponent(params.callbackUrl as string)}`
         );
       }
 
-      redirect(params.callbackUrl || "/");
+      redirect((params.callbackUrl as string) || "/");
     } catch (error) {
       console.log(error);
       if (error instanceof AuthError) {
         redirect(
           `${SIGNIN_ERROR_URL}${encodeURIComponent(
             "Invalid credentials"
-          )}&callbackUrl=${encodeURIComponent(params.callbackUrl)}`
+          )}&callbackUrl=${encodeURIComponent(params.callbackUrl as string)}`
         );
       }
       throw error;

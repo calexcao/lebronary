@@ -15,7 +15,7 @@ export type Book = {
   name: string;
   isbn: string;
   author: string;
-  description: string;
+  description?: string;
   copies: number;
   is_active: boolean | number;
   publish_year: number;

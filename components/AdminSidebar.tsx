@@ -29,13 +29,15 @@ function AdminSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-0 mb-4">
-        <p className="text-lg font-medium p-4 border-b">Admin Dashboard</p>
+        <p className="text-lg font-medium p-4 border-b border-dashed">
+          Admin Dashboard
+        </p>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => (
-            <SidebarMenuItem key={item.text} className="p-2">
-              <SidebarMenuButton asChild>
+            <SidebarMenuItem key={item.text} className="px-2 py-1">
+              <SidebarMenuButton asChild className="py-5">
                 <Link href={item.href}>
                   {item.icon}
                   <span className="text-base">{item.text}</span>

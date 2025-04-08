@@ -2,14 +2,13 @@ import AddBookButton from "@/components/AddBookButton";
 import CatalogTable from "./(catalog)/CatalogTable";
 import { prisma } from "@/lib/prisma";
 
-async function AdminPage({
-  searchParams,
-}: {
-  searchParams: { page: string; limit: string };
-}) {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+async function AdminPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
-  const offset = parseInt(params.page || "10");
-  const take = parseInt(params.limit || "10");
+
+  const offset = parseInt((params.page as string) || "10");
+  const take = parseInt((params.limit as string) || "10");
 
   const [books, total] = await prisma.$transaction([
     prisma.books.findMany({

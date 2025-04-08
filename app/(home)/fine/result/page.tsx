@@ -1,18 +1,17 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { SearchParams } from "@/lib/utils";
 import { Metadata } from "@stripe/stripe-js";
 import { CheckCircle2 } from "lucide-react";
 import Stripe from "stripe";
 
-async function FineResultPage({
-  searchParams,
-}: {
-  searchParams: { session_id: string };
-}) {
-  const params = await searchParams;
-  const { session_id } = params;
+async function FineResultPage(props: { searchParams: SearchParams }) {
+  const params = await props.searchParams;
+  const session_id = params.session_id;
   const session = await auth();
+
+  console.log(params);
 
   if (!session_id) {
     throw new Error("Session ID is required");
@@ -22,9 +21,12 @@ async function FineResultPage({
     throw new Error("Session not found");
   }
 
-  const checkoutSession = await stripe.checkout.sessions.retrieve(session_id, {
-    expand: ["payment_intent"],
-  });
+  const checkoutSession = await stripe.checkout.sessions.retrieve(
+    session_id as string,
+    {
+      expand: ["payment_intent"],
+    }
+  );
 
   const payment_intent = checkoutSession.payment_intent as Stripe.PaymentIntent;
   const payment_status =

@@ -1,18 +1,15 @@
-import AddActivityButton from "@/components/AddActitivityButton";
+import AddActivityButton from "@/components/AddActivityButton";
 import { prisma } from "@/lib/prisma";
 import ActivitiesTable from "./ActivitiesTable";
+import { SearchParams } from "@/lib/utils";
 
-async function ActivitiesPage({
-  searchParams,
-}: {
-  searchParams: { page: string; limit: string };
-}) {
-  const params = await searchParams;
-  const offset = parseInt(params.page || "10");
-  const take = parseInt(params.limit || "10");
+async function ActivitiesPage(props: { searchParams: SearchParams }) {
+  const searchParams = await props.searchParams;
+  const offset = parseInt((searchParams.offset as string) || "0", 10);
+  const take = parseInt((searchParams.take as string) || "10", 10);
 
   const [activities, total] = await prisma.$transaction([
-    prisma.activities.findMany({ skip: offset, take }),
+    prisma.activities.findMany({ skip: offset, take: take }),
     prisma.activities.count(),
   ]);
 
